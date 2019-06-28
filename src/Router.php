@@ -130,7 +130,7 @@ class Router
      * 匹配
      * @param string $method
      * @param string $pathinfo
-     * @return Rule
+     * @return MatchRule
      * @throws \PhpDocReader\AnnotationException
      * @throws \ReflectionException
      */
@@ -184,7 +184,7 @@ class Router
                 // 判断方法是否存在
                 if (method_exists($controllerInstance, $controllerAction)) {
                     // 返回
-                    return new Rule([
+                    return new MatchRule([
                         'controller'  => $controllerInstance,
                         'method'      => $controllerAction,
                         'middleware' => array_merge($this->middleware, $route['middleware']),

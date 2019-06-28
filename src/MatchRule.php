@@ -5,11 +5,11 @@ namespace Mix\Route;
 use Mix\Bean\BeanInjector;
 
 /**
- * Class Rule
+ * Class MatchRule
  * @package Mix\Route
  * @author liu,jian <coder.keda@gmail.com>
  */
-class Rule
+class MatchRule
 {
 
     /**
