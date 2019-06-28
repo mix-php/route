@@ -25,7 +25,7 @@ class Rule
     /**
      * @var array
      */
-    public $middlewares;
+    public $middleware;
 
     /**
      * @var array
@@ -56,9 +56,9 @@ class Rule
      * 获取中间件名称
      * @return array
      */
-    public function getMiddlewares()
+    public function getMiddleware()
     {
-        return $this->middlewares;
+        return $this->middleware;
     }
 
     /**

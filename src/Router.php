@@ -25,7 +25,7 @@ class Router
      * 中间件命名空间
      * @var string
      */
-    public $middlewaresNamespace = '';
+    public $middlewareNamespace = '';
 
     /**
      * 默认变量规则
@@ -43,7 +43,7 @@ class Router
      * 全局中间件
      * @var array
      */
-    public $middlewares = [];
+    public $middleware = [];
 
     /**
      * 路由规则
@@ -91,9 +91,9 @@ class Router
                     $prevTwo => [str_replace('{controller}', 'Index', $controller), 'Index'],
                 ];
                 // 附上中间件
-                if (isset($route['middlewares'])) {
-                    $prevRules[$prev]['middlewares']    = $route['middlewares'];
-                    $prevRules[$prevTwo]['middlewares'] = $route['middlewares'];
+                if (isset($route['middleware'])) {
+                    $prevRules[$prev]['middleware']    = $route['middleware'];
+                    $prevRules[$prevTwo]['middleware'] = $route['middleware'];
                 }
                 $rules += $prevRules;
             }
@@ -162,7 +162,7 @@ class Router
                 // 记录参数
                 $shortAction = array_pop($fragments);
                 $shortClass  = implode('\\', $fragments);
-                $result[]    = [[$shortClass, $shortAction, 'middlewares' => isset($route['middlewares']) ? $route['middlewares'] : []], $queryParams];
+                $result[]    = [[$shortClass, $shortAction, 'middleware' => isset($route['middleware']) ? $route['middleware'] : []], $queryParams];
             }
         }
         // 筛选有效的结果
@@ -187,7 +187,7 @@ class Router
                     return new Rule([
                         'controller'  => $controllerInstance,
                         'method'      => $controllerAction,
-                        'middlewares' => array_merge($this->middlewares, $route['middlewares']),
+                        'middleware' => array_merge($this->middleware, $route['middleware']),
                         'params'      => $queryParams,
                     ]);
                 }
