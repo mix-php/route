@@ -185,10 +185,10 @@ class Router
                 if (method_exists($controllerInstance, $controllerAction)) {
                     // 返回
                     return new MatchRule([
-                        'controller'  => $controllerInstance,
-                        'method'      => $controllerAction,
+                        'controller' => $controllerInstance,
+                        'action'     => $controllerAction,
                         'middleware' => array_merge($this->middleware, $route['middleware']),
-                        'params'      => $queryParams,
+                        'params'     => $queryParams,
                     ]);
                 }
             }

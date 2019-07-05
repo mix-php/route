@@ -20,7 +20,7 @@ class MatchRule
     /**
      * @var string
      */
-    public $method;
+    public $action;
 
     /**
      * @var array
@@ -49,7 +49,25 @@ class MatchRule
      */
     public function getCallback(): callable
     {
-        return [$this->controller, $this->method];
+        return [$this->controller, $this->action];
+    }
+
+    /**
+     * 获取Controller
+     * @return object
+     */
+    public function getController()
+    {
+        return $this->controller;
+    }
+
+    /**
+     * 获取Action
+     * @return object
+     */
+    public function getAction()
+    {
+        return $this->action;
     }
 
     /**
