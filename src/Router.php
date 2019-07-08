@@ -168,8 +168,6 @@ class Router
         // 筛选有效的结果
         foreach ($result as $item) {
             list($route, $queryParams) = $item;
-            // 路由参数导入请求类
-            \Mix::$app->request->setRoute($queryParams);
             // 实例化控制器
             list($shortClass, $shortAction) = $route;
             $controllerDir    = FileSystemHelper::dirname($shortClass);
