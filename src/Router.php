@@ -58,22 +58,21 @@ class Router
     protected $_materials = [];
 
     /**
-     * Route constructor.
+     * Router constructor.
      * @param array $config
      * @throws \PhpDocReader\AnnotationException
      * @throws \ReflectionException
      */
-    public function __construct(array $config)
+    public function __construct(array $config = [])
     {
         BeanInjector::inject($this, $config);
-        $this->init();
     }
 
     /**
-     * 初始化
+     * 解析
      * 生成路由数据，将路由规则转换为正则表达式，并提取路由参数名
      */
-    public function init()
+    public function parse()
     {
         // URL 目录处理
         $rules = [];
