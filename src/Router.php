@@ -123,7 +123,7 @@ class Router
                     $var[] = $fname;
                 }
             }
-            $pattern     = '/^' . $method . implode('\/', $fragment) . '\/*$/i';
+            $pattern     = '/^' . $method . implode('\/', $fragment) . '$/i';
             $materials[] = [$pattern, $route, $var];
         }
         return $materials;
@@ -159,6 +159,8 @@ class Router
             $callback = array_shift($route);
             if (is_callable($callback)) {
                 // 返回
+                list($controller, $action) = $callback;
+                $callback = [new $controller, $action];
                 return new MatchRule($callback, $route['middleware'], $params);
             }
         }
