@@ -13,14 +13,9 @@ class MatchRule
 {
 
     /**
-     * @var object
+     * @var callable
      */
-    public $controller;
-
-    /**
-     * @var string
-     */
-    public $action;
+    public $callbock;
 
     /**
      * @var array
@@ -38,9 +33,11 @@ class MatchRule
      * @throws \PhpDocReader\AnnotationException
      * @throws \ReflectionException
      */
-    public function __construct(array $config)
+    public function __construct(callable $callbock, array $middleware, array $params)
     {
-        BeanInjector::inject($this, $config);
+        $this->callbock   = $callbock;
+        $this->middleware = $middleware;
+        $this->params     = $params;
     }
 
     /**
@@ -49,32 +46,14 @@ class MatchRule
      */
     public function getCallback(): callable
     {
-        return [$this->controller, $this->action];
-    }
-
-    /**
-     * 获取Controller
-     * @return object
-     */
-    public function getController()
-    {
-        return $this->controller;
-    }
-
-    /**
-     * 获取Action
-     * @return object
-     */
-    public function getAction()
-    {
-        return $this->action;
+        return $this->callbock;
     }
 
     /**
      * 获取中间件名称
      * @return array
      */
-    public function getMiddleware()
+    public function getMiddleware(): array
     {
         return $this->middleware;
     }
@@ -83,7 +62,7 @@ class MatchRule
      * 获取路由参数
      * @return array
      */
-    public function getParams()
+    public function getParams(): array
     {
         return $this->params;
     }

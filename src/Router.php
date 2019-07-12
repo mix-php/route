@@ -16,18 +16,6 @@ class Router
 {
 
     /**
-     * 控制器命名空间
-     * @var string
-     */
-    public $controllerNamespace = '';
-
-    /**
-     * 中间件命名空间
-     * @var string
-     */
-    public $middlewareNamespace = '';
-
-    /**
      * 默认变量规则
      * @var string
      */
@@ -55,7 +43,7 @@ class Router
      * 转化后的路由规则
      * @var array
      */
-    protected $_materials = [];
+    protected $materials = [];
 
     /**
      * Router constructor.
@@ -72,32 +60,47 @@ class Router
      * 解析
      * 生成路由数据，将路由规则转换为正则表达式，并提取路由参数名
      */
-    public function parse()
+    public function parse(): void
     {
-        // URL 目录处理
-        $rules = [];
-        foreach ($this->rules as $rule => $route) {
-            $rules[$rule] = $route;
-            if (strpos($rule, '{controller}') !== false && strpos($rule, '{action}') !== false) {
-                $prev    = dirname($rule);
-                $prevTwo = dirname($prev);
-                $prevTwo = $prevTwo == '.' ? '/' : $prevTwo;
-                $prevTwo = $prevTwo == '\\' ? '/' : $prevTwo;
-                list($controller) = $route;
-                // 增加上两级的路由
-                $prevRules = [
-                    $prev    => [$controller, 'Index'],
-                    $prevTwo => [str_replace('{controller}', 'Index', $controller), 'Index'],
-                ];
-                // 附上中间件
-                if (isset($route['middleware'])) {
-                    $prevRules[$prev]['middleware']    = $route['middleware'];
-                    $prevRules[$prevTwo]['middleware'] = $route['middleware'];
+        $rules           = $this->merge($this->rules, $this->middleware);
+        $this->materials = $this->convert($rules);
+    }
+
+    /**
+     * 合并中间件、分组
+     * @param array $rules
+     * @param array $middleware
+     * @return array
+     */
+    protected function merge(array $rules, array $middleware): array
+    {
+        $data = [];
+        foreach ($rules as $url => $rule) {
+            $rule['middleware'] = $rule['middleware'] ?? [];
+            if (isset($rule['rules'])) {
+                // 分组处理
+                foreach ($rule['rules'] as $gUrl => $gRule) {
+                    $gUrl                = substr_replace($gUrl, $url . '/', strpos($gUrl, '/'), 1);
+                    $gRule['middleware'] = $gRule['middleware'] ?? [];
+                    $gRule['middleware'] = array_merge($middleware, $rule['middleware'], $gRule['middleware']);
+                    $data[$gUrl]         = $gRule;
                 }
-                $rules += $prevRules;
+            } else {
+                $rule['middleware'] = array_merge($middleware, $rule['middleware']);
             }
+            $data[$url] = $rule;
         }
-        // 转正则
+        return $data;
+    }
+
+    /**
+     * 转换正则
+     * @param array $rules
+     * @return array
+     */
+    protected function convert(array $rules): array
+    {
+        $materials = [];
         foreach ($rules as $rule => $route) {
             if ($blank = strpos($rule, ' ')) {
                 $method = substr($rule, 0, $blank);
@@ -107,7 +110,7 @@ class Router
                 $method = '(?:CLI|GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS) ';
             }
             $fragment = explode('/', $rule);
-            $names    = [];
+            $var      = [];
             foreach ($fragment as $k => $v) {
                 preg_match('/{([\w-]+)}/i', $v, $matches);
                 if (!empty($matches)) {
@@ -117,12 +120,13 @@ class Router
                     } else {
                         $fragment[$k] = str_replace("{$fname}", "({$this->defaultPattern})", $fragment[$k]);
                     }
-                    $names[] = $fname;
+                    $var[] = $fname;
                 }
             }
-            $pattern            = '/^' . $method . implode('\/', $fragment) . '\/*$/i';
-            $this->_materials[] = [$pattern, $route, $names];
+            $pattern     = '/^' . $method . implode('\/', $fragment) . '\/*$/i';
+            $materials[] = [$pattern, $route, $var];
         }
+        return $materials;
     }
 
     /**
@@ -133,65 +137,29 @@ class Router
      * @throws \PhpDocReader\AnnotationException
      * @throws \ReflectionException
      */
-    public function match(string $method, string $pathinfo)
+    public function match(string $method, string $pathinfo): MatchRule
     {
         // 由于路由歧义，会存在多条路由规则都可匹配的情况
-        $rule   = "{$method} {$pathinfo}";
         $result = [];
-        foreach ($this->_materials as $item) {
-            list($pattern, $route, $names) = $item;
-            if (preg_match($pattern, $rule, $matches)) {
-                $queryParams = [];
+        foreach ($this->materials as $item) {
+            list($pattern, $route, $var) = $item;
+            if (preg_match($pattern, "{$method} {$pathinfo}", $matches)) {
+                $params = [];
                 // 提取路由查询参数
-                foreach ($names as $k => $v) {
-                    $queryParams[$v] = $matches[$k + 1];
-                }
-                // 替换路由中的变量
-                $fragments   = explode('/', $route[0]);
-                $fragments[] = $route[1];
-                foreach ($fragments as $k => $v) {
-                    preg_match('/{([\w-]+)}/i', $v, $matches);
-                    if (!empty($matches)) {
-                        list($fname) = $matches;
-                        if (isset($queryParams[$fname])) {
-                            $fragments[$k] = $queryParams[$fname];
-                        }
-                    }
+                foreach ($var as $k => $v) {
+                    $params[$v] = $matches[$k + 1];
                 }
                 // 记录参数
-                $shortAction = array_pop($fragments);
-                $shortClass  = implode('\\', $fragments);
-                $result[]    = [[$shortClass, $shortAction, 'middleware' => isset($route['middleware']) ? $route['middleware'] : []], $queryParams];
+                $result[] = [$route, $params];
             }
         }
         // 筛选有效的结果
         foreach ($result as $item) {
-            list($route, $queryParams) = $item;
-            // 实例化控制器
-            list($shortClass, $shortAction) = $route;
-            $controllerDir    = FileSystemHelper::dirname($shortClass);
-            $controllerDir    = $controllerDir == '.' ? '' : "$controllerDir\\";
-            $controllerName   = NameHelper::snakeToCamel(\Mix\Helper\FileSystemHelper::basename($shortClass), true);
-            $controllerClass  = "{$this->controllerNamespace}\\{$controllerDir}{$controllerName}Controller";
-            $shortAction      = NameHelper::snakeToCamel($shortAction, true);
-            $controllerAction = "action{$shortAction}";
-            // 判断类是否存在
-            if (class_exists($controllerClass)) {
-                $controllerInstance = new $controllerClass();
-                // 判断方法是否存在
-                if (method_exists($controllerInstance, $controllerAction)) {
-                    // 返回
-                    return new MatchRule([
-                        'controller' => $controllerInstance,
-                        'action'     => $controllerAction,
-                        'middleware' => array_merge($this->middleware, $route['middleware']),
-                        'params'     => $queryParams,
-                    ]);
-                }
-            }
-            // 不带路由参数的路由规则找不到时，直接抛出错误
-            if (empty($queryParams)) {
-                break;
+            list($route, $params) = $item;
+            $callback = array_shift($route);
+            if (is_callable($callback)) {
+                // 返回
+                return new MatchRule($callback, $route['middleware'], $params);
             }
         }
         throw new NotFoundException('Not Found (#404)');
