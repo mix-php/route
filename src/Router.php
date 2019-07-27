@@ -107,21 +107,23 @@ class Router
                 $method = "(?:{$method}) ";
                 $rule   = substr($rule, $blank + 1);
             } else {
-                $method = '(?:CLI|GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS) ';
+                $method = '(?:GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS) ';
             }
             $fragment = explode('/', $rule);
             $var      = [];
             foreach ($fragment as $k => $v) {
                 preg_match('/{([\w-]+)}/i', $v, $matches);
-                if (!empty($matches)) {
-                    list($fname) = $matches;
-                    if (isset($this->patterns[$fname])) {
-                        $fragment[$k] = str_replace("{$fname}", "({$this->patterns[$fname]})", $fragment[$k]);
-                    } else {
-                        $fragment[$k] = str_replace("{$fname}", "({$this->defaultPattern})", $fragment[$k]);
-                    }
-                    $var[] = $fname;
+                if (empty($matches)) {
+                    continue;
                 }
+                list($fname) = $matches;
+                $fname = substr($fname, 1, -1);
+                if (isset($this->patterns[$fname])) {
+                    $fragment[$k] = str_replace('{' . $fname . '}', "({$this->patterns[$fname]})", $fragment[$k]);
+                } else {
+                    $fragment[$k] = str_replace('{' . $fname . '}', "({$this->defaultPattern})", $fragment[$k]);
+                }
+                $var[] = $fname;
             }
             $pattern     = '/^' . $method . implode('\/', $fragment) . '$/i';
             $materials[] = [$pattern, $route, $var];
