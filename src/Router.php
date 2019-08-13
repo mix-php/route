@@ -135,11 +135,11 @@ class Router
      * 匹配
      * @param string $method
      * @param string $pathinfo
-     * @return MatchRule
+     * @return Result
      * @throws \PhpDocReader\AnnotationException
      * @throws \ReflectionException
      */
-    public function match(string $method, string $pathinfo): MatchRule
+    public function match(string $method, string $pathinfo): Result
     {
         // 由于路由歧义，会存在多条路由规则都可匹配的情况
         $result = [];
@@ -163,7 +163,7 @@ class Router
                 // 返回
                 list($controller, $action) = $callback;
                 $callback = [new $controller, $action];
-                return new MatchRule($callback, $route['middleware'], $params);
+                return new Result($callback, $route['middleware'], $params);
             }
         }
         throw new NotFoundException('Not Found (#404)');
