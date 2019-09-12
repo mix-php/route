@@ -161,8 +161,6 @@ class Router
             $callback = array_shift($route);
             if (is_callable($callback)) {
                 // 返回
-                list($controller, $action) = $callback;
-                $callback = [new $controller, $action];
                 return new Result($callback, $route['middleware'], $params);
             }
         }

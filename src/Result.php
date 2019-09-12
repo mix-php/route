@@ -46,7 +46,8 @@ class Result
      */
     public function getCallback(): callable
     {
-        return $this->callbock;
+        list($class, $method) = $this->callbock;
+        return [new $class, $method];
     }
 
     /**
