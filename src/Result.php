@@ -33,7 +33,7 @@ class Result
      * @throws \PhpDocReader\AnnotationException
      * @throws \ReflectionException
      */
-    public function __construct(callable $callbock, array $middleware, array $params)
+    public function __construct(array $callbock, array $middleware, array $params)
     {
         $this->callbock   = $callbock;
         $this->middleware = $middleware;
