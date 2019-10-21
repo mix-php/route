@@ -2,8 +2,6 @@
 
 namespace Mix\Route;
 
-use Mix\Bean\BeanInjector;
-
 /**
  * Class Result
  * @package Mix\Route
