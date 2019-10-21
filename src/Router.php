@@ -46,8 +46,6 @@ class Router
     /**
      * Router constructor.
      * @param array $config
-     * @throws \PhpDocReader\AnnotationException
-     * @throws \ReflectionException
      */
     public function __construct(array $config = [])
     {
