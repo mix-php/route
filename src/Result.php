@@ -13,7 +13,7 @@ class Result
     /**
      * @var callable
      */
-    public $callbock;
+    public $callback;
 
     /**
      * @var array
@@ -26,14 +26,14 @@ class Result
     public $params;
 
     /**
-     * Rule constructor.
-     * @param array $config
-     * @throws \PhpDocReader\AnnotationException
-     * @throws \ReflectionException
+     * Result constructor.
+     * @param array $callback
+     * @param array $middleware
+     * @param array $params
      */
-    public function __construct(array $callbock, array $middleware, array $params)
+    public function __construct(array $callback, array $middleware, array $params)
     {
-        $this->callbock   = $callbock;
+        $this->callback   = $callback;
         $this->middleware = $middleware;
         $this->params     = $params;
     }
@@ -44,7 +44,7 @@ class Result
      */
     public function getCallback(): callable
     {
-        list($class, $method) = $this->callbock;
+        list($class, $method) = $this->callback;
         return [new $class, $method];
     }
 
