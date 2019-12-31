@@ -40,12 +40,13 @@ class Result
 
     /**
      * 获取Callback
+     * @param mixed ...$constructorArgs
      * @return callable
      */
-    public function getCallback(): callable
+    public function getCallback(...$constructorArgs): callable
     {
         list($class, $method) = $this->callback;
-        return [new $class, $method];
+        return [new $class(...$constructorArgs), $method];
     }
 
     /**
